@@ -79,7 +79,7 @@ void trapTapeRoutine(){
 
     if(isLoad){
         uint8_t checksum = blockType;
-        for(size_t n_bytes = 0; n_bytes < length; n_bytes++){
+        for(size_t n_bytes = 0; n_bytes < blockLength - 2; n_bytes++){
             fread(&byte, 1, 1, tape_file_ptr);
             *cpu.writeMemory(address) = byte;
             address = (address + 1) % MEMORY_SIZE;
@@ -91,6 +91,7 @@ void trapTapeRoutine(){
             return;
         }
     }
+
 
     size_t actual = ftell(tape_file_ptr);
     size_t filesize;
