@@ -16,9 +16,6 @@ void setup(){
 }
 
 void loop(){
-    if(!emulationStopped)
-        emulateHardware();
-
     const Uint8* keystate = SDL_GetKeyboardState(NULL);
     emulateKeyboard(keystate);
     switch(activeInputDevice){
@@ -34,4 +31,7 @@ void loop(){
         break;
     }
     updateHotkeys(keystate);
+
+    if(!emulationStopped)
+        emulateHardware();
 }
