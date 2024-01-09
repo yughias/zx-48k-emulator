@@ -5,10 +5,14 @@ SDL_AudioSpec audioSpec;
 SDL_AudioDeviceID audioDev;
 
 uint8_t buffer[AUDIO_BUFFER_SIZE];
-int bufIdx = 0;
+size_t bufIdx = 0;
 
-int audio_request_rate;
-int audio_counter;
+size_t audio_request_rate;
+size_t audio_counter;
+
+size_t queued_samples;
+size_t queued_check_counter;
+size_t queued_check_rate; 
 
 void initAudio(){
     SDL_memset(&audioSpec, 0, sizeof(audioSpec));
@@ -22,23 +26,34 @@ void initAudio(){
     audio_request_rate = CLOCK_PER_FRAME * REFRESH_RATE / AUDIO_FREQUENCY;
     audio_counter = 0;
 
+    queued_check_rate = audio_request_rate * AUDIO_SAMPLES;
+    queued_check_counter = 0;
+
     SDL_PauseAudioDevice(audioDev, 0);
 }
 
 void emulateAudio(){
-    if(!audio_counter && bufIdx != AUDIO_BUFFER_SIZE){
-        uint8_t sample = (ULA & 0b10000) ? 255 : 0;
+    if(!audio_counter && bufIdx < AUDIO_BUFFER_SIZE){
+        uint8_t sample = (ULA & 0b10000) ? SDL_MAX_UINT8 : audioSpec.silence;
         buffer[bufIdx++] = sample;
         audio_counter = audio_request_rate;
     } 
 
-    if(bufIdx >= AUDIO_SAMPLES && SDL_GetQueuedAudioSize(audioDev) < AUDIO_BUFFER_SIZE){
+    if(bufIdx >= AUDIO_SAMPLES && queued_samples < AUDIO_SAMPLES*2){
         SDL_QueueAudio(audioDev, &buffer, bufIdx);
         bufIdx = 0;
     }
 
+    if(!queued_check_counter){
+        queued_samples = SDL_GetQueuedAudioSize(audioDev);
+        queued_check_counter = queued_check_rate;
+    }
+
     if(audio_counter)
         audio_counter--;
+
+    if(queued_check_counter)
+        queued_check_counter--;
 }
 
 void freeAudio(){
