@@ -127,7 +127,7 @@ void emulateCursorJoystick(const Uint8* keystate){
 void calculateULAReg(uint8_t addr){
     WORK_REG = ~(uint8_t)0x1F;
 
-    if((uint8_t)(~addr) == (uint8_t)(~0XFE))
+    if((uint8_t)(~addr) & (uint8_t)(~0XFE))
         WORK_REG |= KEYREG_FEFE;
 
     if((uint8_t)(~addr) & (uint8_t)(~0XFD))

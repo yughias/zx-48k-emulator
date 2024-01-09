@@ -39,7 +39,7 @@ void emulateAudio(){
         audio_counter = audio_request_rate;
     } 
 
-    if(bufIdx >= AUDIO_SAMPLES && queued_samples < AUDIO_SAMPLES*2){
+    if(bufIdx >= AUDIO_SAMPLES && queued_samples < AUDIO_BUFFER_SIZE){
         SDL_QueueAudio(audioDev, &buffer, bufIdx);
         bufIdx = 0;
     }
