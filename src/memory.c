@@ -45,8 +45,11 @@ uint8_t* getWriteIO(uint16_t ioaddr){
         if(AY_SELECTED_REG >= AY_AMP_A && AY_SELECTED_REG <= AY_AMP_C)
             ay.checkAmp[AY_SELECTED_REG - AY_AMP_A] = true;
 
-        if(AY_SELECTED_REG == AY_ENV_COARSE || AY_SELECTED_REG == AY_ENV_FINE || AY_SELECTED_REG == AY_ENV_SHAPE)
-            ay.checkEnv = true;
+        if(AY_SELECTED_REG == AY_ENV_COARSE || AY_SELECTED_REG == AY_ENV_FINE)
+            ay.checkEnvCounter = true;
+
+        if(AY_SELECTED_REG == AY_ENV_SHAPE)
+            ay.checkEnvShape = true;
 
         return &AY_REG[AY_SELECTED_REG & 0x0F];
     }

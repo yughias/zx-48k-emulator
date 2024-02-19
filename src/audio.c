@@ -96,22 +96,18 @@ void emulateAy(){
     }
 
     // envelope emulation
-    if(ay.checkEnv){
-        if(AY_REG[AY_ENV_SHAPE] & 0b100)
+    if(ay.checkEnvShape){
+        if(AY_REG[AY_ENV_SHAPE] & 0b100){
             ay.env = ASC_ENV;
-        else
+            ay.env_step = 0;
+        } else {
             ay.env = DESC_ENV;
-        
-        for(int i = 0; i < 3; i++)
-            if(AY_REG[AY_AMP_A + i] & 0x10){
-                if(ay.env == ASC_ENV)
-                    ay.volume[i] = 0x00;
-                if(ay.env == DESC_ENV)
-                    ay.volume[i] = 0x0F;
-            }
-        
-        loadEnvAy();
+            ay.env_step = 0x0F;
+        }
     }
+
+    if(ay.checkEnvCounter)
+        loadEnvAy();
     
     if(!ay.env_counter){
         envelopeVolumeAy();
@@ -122,7 +118,8 @@ void emulateAy(){
     }
     ay.env_counter--;
 
-    ay.checkEnv = false;
+    ay.checkEnvShape = false;
+    ay.checkEnvCounter = false;
     for(int i = 0; i < 3; i++){
         ay.checkAmp[i] = false;
         ay.checkFreq[i] = false;
