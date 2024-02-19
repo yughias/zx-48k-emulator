@@ -41,7 +41,7 @@ uint16_t getSample();
 void loadFreqAy(int);
 void loadNoiseAy();
 void loadEnvAy();
-void envelopeVolumeAy(int);
+void envelopeVolumeAy();
 
 void initAudio(){
     SDL_memset(&audioSpec, 0, sizeof(audioSpec));
@@ -114,9 +114,10 @@ void emulateAy(){
     }
     
     if(!ay.env_counter){
+        envelopeVolumeAy();
         for(int i = 0; i < 3; i++)
             if(AY_REG[AY_AMP_A + i] & 0x10)
-                envelopeVolumeAy(i);
+                ay.volume[i] = ay.env_step;
         loadEnvAy();
     }
     ay.env_counter--;
@@ -169,7 +170,7 @@ void loadNoiseAy(){
     ay.noise_counter = (AY_REG[AY_NOISE_PERIOD] & 0b11111) << 4;
 }
 
-void envelopeVolumeAy(int i){
+void envelopeVolumeAy(){
     uint8_t env_reg = AY_REG[AY_ENV_SHAPE];
     bool hold = env_reg & 0b1;
     bool alternate = env_reg & 0b10;
@@ -177,11 +178,11 @@ void envelopeVolumeAy(int i){
     bool cont = env_reg & 0b1000;
 
     if(
-        (ay.env == DESC_ENV && ay.volume[i] == 0x00) ||
-        (ay.env == ASC_ENV  && ay.volume[i] == 0x0F)
+        (ay.env == DESC_ENV && ay.env_step == 0x00) ||
+        (ay.env == ASC_ENV  && ay.env_step == 0x0F)
     ) {
         if(!cont){
-            ay.volume[i] = 0;
+            ay.env_step = 0;
             ay.env = NO_ENV;
             return;
         }
@@ -202,11 +203,11 @@ void envelopeVolumeAy(int i){
         } else {
             switch(ay.env){
                 case ASC_ENV:
-                ay.volume[i] = 0x00;
+                ay.env_step = 0x00;
                 break;
 
                 case DESC_ENV:
-                ay.volume[i] = 0x0F;
+                ay.env_step = 0x0F;
                 break;
 
                 default:
@@ -217,11 +218,11 @@ void envelopeVolumeAy(int i){
         if(hold){
             switch(ay.env){
                 case ASC_ENV:
-                ay.volume[i] = 0x0F;
+                ay.env_step = 0x0F;
                 break;
 
                 case DESC_ENV:
-                ay.volume[i] = 0x00;
+                ay.env_step = 0x00;
                 break;
 
                 default:
@@ -230,11 +231,11 @@ void envelopeVolumeAy(int i){
             ay.env = NO_ENV;
         }
     } else {
-        if(ay.env == ASC_ENV && ay.volume[i] != 0x0F)
-            ay.volume[i] += 1;
+        if(ay.env == ASC_ENV && ay.env_step != 0x0F)
+            ay.env_step += 1;
 
-        if(ay.env == DESC_ENV && ay.volume[i] != 0x00)
-            ay.volume[i] -= 1;
+        if(ay.env == DESC_ENV && ay.env_step != 0x00)
+            ay.env_step -= 1;
     }
 }
 

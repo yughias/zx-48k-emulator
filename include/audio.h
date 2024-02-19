@@ -31,6 +31,7 @@ typedef struct {
     uint16_t noise_counter;
     uint32_t lfsr;
     uint32_t env_counter;
+    uint8_t env_step;
     uint8_t volume[3];
     enum {NO_ENV, ASC_ENV, DESC_ENV} env;
     bool pulse[3];
