@@ -70,12 +70,8 @@ void emulateAy(){
 
     // 3 channels tone emulation
     for(int i = 0; i < 3; i++){
-        if(ay.checkFreq[i])
-            loadFreqAy(i);
-
-        if(ay.checkAmp[i])
-            if(!(AY_REG[AY_AMP_A + i] & 0x10))
-                ay.volume[i] = AY_REG[AY_AMP_A + i] & 0x0F;
+        if(!(AY_REG[AY_AMP_A + i] & 0x10))
+            ay.volume[i] = AY_REG[AY_AMP_A + i] & 0x0F;
 
         if(AY_REG[AY_AMP_A + i] & 0x1F){
             if(!ay.pulse_counter[i]){
@@ -105,9 +101,6 @@ void emulateAy(){
             ay.env_step = 0x0F;
         }
     }
-
-    if(ay.checkEnvCounter)
-        loadEnvAy();
     
     if(!ay.env_counter){
         envelopeVolumeAy();
@@ -119,11 +112,6 @@ void emulateAy(){
     ay.env_counter--;
 
     ay.checkEnvShape = false;
-    ay.checkEnvCounter = false;
-    for(int i = 0; i < 3; i++){
-        ay.checkAmp[i] = false;
-        ay.checkFreq[i] = false;
-    }
 }
 
 void sendAudioToDevice(){
@@ -155,16 +143,23 @@ void freeAudio(){
 
 void loadFreqAy(int i){
     ay.pulse_counter[i] = ((AY_REG[i*2 + 1] & 0x0F) << 8) | AY_REG[i*2];
-    ay.pulse_counter[i] <<= 3;
+    if(!ay.pulse_counter)
+        ay.pulse_counter[i] = 1;
+    ay.pulse_counter[i] <<= 3;    
 }
 
 void loadEnvAy(){
     ay.env_counter = ((AY_REG[AY_ENV_COARSE]) << 8) | AY_REG[AY_ENV_FINE];
+    if(!ay.env_counter)
+        ay.env_counter = 1;
     ay.env_counter <<= 4;
 }
 
 void loadNoiseAy(){
-    ay.noise_counter = (AY_REG[AY_NOISE_PERIOD] & 0b11111) << 4;
+    ay.noise_counter = (AY_REG[AY_NOISE_PERIOD] & 0b11111);
+    if(!ay.noise_counter)
+        ay.noise_counter = 1;
+    ay.noise_counter <<= 4;
 }
 
 void envelopeVolumeAy(){

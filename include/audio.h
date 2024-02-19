@@ -35,10 +35,7 @@ typedef struct {
     uint8_t volume[3];
     enum {NO_ENV, ASC_ENV, DESC_ENV} env;
     bool pulse[3];
-    bool checkAmp[3];
-    bool checkFreq[3];
     bool checkEnvShape;
-    bool checkEnvCounter;
     bool halfClock;
 } ay_t; 
 
