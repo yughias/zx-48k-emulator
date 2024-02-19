@@ -19,6 +19,9 @@ uint8_t WORK_REG;
 
 uint8_t KEMPSTON_REG;
 
+uint8_t AY_REG[16];
+uint8_t AY_SELECTED_REG;
+
 #define MAP_KEY(key, reg, bit) if(keystate[SDL_SCANCODE_ ## key]) KEYREG_ ## reg |= (1 << bit)
 
 void emulateKeyboard(const Uint8* keystate){
@@ -78,6 +81,7 @@ void emulateKeyboard(const Uint8* keystate){
         MAP_KEY(SPACE,     7FFE, 0);
     // CONTROL MAP TO SYMBOL MAP
     MAP_KEY(RCTRL,     7FFE, 1); MAP_KEY(LCTRL, 7FFE, 1);
+    MAP_KEY(RALT,      7FFE, 1); MAP_KEY(LALT, 7FFE, 1);
     MAP_KEY(M,         7FFE, 2);
     MAP_KEY(N,         7FFE, 3);
     MAP_KEY(B,         7FFE, 4);

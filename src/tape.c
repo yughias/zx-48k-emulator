@@ -112,8 +112,11 @@ void stopTape(){
     if(tapeFormat == RAW_TAPE_SAVE)
         fwrite(&byte, 1, 1, tape_file_ptr);
 
-    fclose(tape_file_ptr);
-    tapeFormat = NO_TAPE;
+    if(tape_file_ptr){
+        fclose(tape_file_ptr);
+        tapeFormat = NO_TAPE;
+        tape_file_ptr = NULL;
+    }
 }
 
 void startSaveRawTape(const char* filename){
@@ -240,6 +243,10 @@ void emulateTape(){
 }
 
 void showTapeStoppedMsg(){
+    #ifdef __EMSCRIPTEN__
+        return;
+    #endif
+
     tinyfd_messageBox(
                 "ZX SPECTRUM TAPE",
                 "Tape has been stopped!",

@@ -117,7 +117,7 @@ void initMenu(){
 }
 
 void frontend_stopEmulation(){ emulationStopped = !emulationStopped; }
-void frontend_resetEmulation(){ loadROM("data/ROMs/48k.rom"); initCPU(&cpu); stopTape(); }
+void frontend_resetEmulation(){ stopTape(); freeAll(); initAll(); }
 
 void frontend_saveZ80(){
     const char* filterPatterns[] = { "*.z80" };
@@ -272,3 +272,31 @@ void frontend_info(){
                 0
     );
 }
+
+#ifdef __EMSCRIPTEN__
+
+void emscripten_resetEmulation(){
+    stopTape();
+    freeMemory();
+    resetAy();
+    initCPU(&cpu);
+    initMemory();
+}
+
+void emscripten_loadTape(){
+    stopTape();
+    startLoadTapFile("file.bin");
+}
+
+void emscripten_instantLoadTape(){
+    emscripten_resetEmulation();
+    loadState("data/autoloader.z80");
+    instantLoadTapFile("file.bin");
+}
+
+void emscripten_loadZ80(){
+    emscripten_resetEmulation();
+    loadState("file.bin");
+}
+
+#endif

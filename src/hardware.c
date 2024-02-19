@@ -39,7 +39,8 @@ void emulateHardware(){
         }
 
         emulateCpu();
-        emulateAudio();
+        emulateAy();
+        sendAudioToDevice();
         emulateTape();
         
         emulateUlaRender(master_clock_counter);

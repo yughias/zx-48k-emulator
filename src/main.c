@@ -30,7 +30,10 @@ void loop(){
         default:
         break;
     }
+    
+    #ifndef __EMSCRIPTEN__
     updateHotkeys(keystate);
+    #endif
 
     if(!emulationStopped)
         emulateHardware();

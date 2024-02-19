@@ -181,7 +181,6 @@ void initCPU(z80_t* z80){
     z80->INTERRUPT_ENABLED = false;
     z80->INTERRUPT_PENDING = false;
     z80->INTERRUPT_VECT = 0xFF;
-    z80->cycles = 0;
 }
 
 void restoreRegisterTable(z80_t* z80, uint8_t** r, uint16_t** rp, uint16_t** rp2){
