@@ -36,7 +36,6 @@ typedef struct {
     bool pulse[3];
     bool checkAmp[3];
     bool checkFreq[3];
-    bool checkNoise;
     bool checkEnv;
     bool halfClock;
 } ay_t; 

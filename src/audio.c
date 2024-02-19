@@ -87,17 +87,12 @@ void emulateAy(){
         }
     }
 
-    if(ay.checkEnv)
-        loadNoiseAy();
-
     if(AY_REG[AY_NOISE_PERIOD]){
-        if(ay.noise_counter){
-            ay.noise_counter--;
-            if(!ay.noise_counter){
-                ay.lfsr = (((ay.lfsr & 1) ^ ((ay.lfsr >> 3) & 1)) << 16) | (ay.lfsr >> 1);
-                loadNoiseAy();
-            }
+        if(!ay.noise_counter){
+            ay.lfsr = (((ay.lfsr & 1) ^ ((ay.lfsr >> 3) & 1)) << 16) | (ay.lfsr >> 1);
+            loadNoiseAy();
         }
+        ay.noise_counter--;
     }
 
     // envelope emulation
@@ -117,19 +112,16 @@ void emulateAy(){
         
         loadEnvAy();
     }
-
-    if(ay.env_counter){
-        ay.env_counter--;
-        if(!ay.env_counter){
-            for(int i = 0; i < 3; i++)
-                if(AY_REG[AY_AMP_A + i] & 0x10)
-                    envelopeVolumeAy(i);
-            loadEnvAy();
-        }
+    
+    if(!ay.env_counter){
+        for(int i = 0; i < 3; i++)
+            if(AY_REG[AY_AMP_A + i] & 0x10)
+                envelopeVolumeAy(i);
+        loadEnvAy();
     }
+    ay.env_counter--;
 
     ay.checkEnv = false;
-    ay.checkNoise = false;
     for(int i = 0; i < 3; i++){
         ay.checkAmp[i] = false;
         ay.checkFreq[i] = false;
@@ -203,6 +195,9 @@ void envelopeVolumeAy(int i){
                 case DESC_ENV:
                 ay.env = ASC_ENV;
                 break;
+
+                default:
+                break;
             }
         } else {
             switch(ay.env){
@@ -212,6 +207,9 @@ void envelopeVolumeAy(int i){
 
                 case DESC_ENV:
                 ay.volume[i] = 0x0F;
+                break;
+
+                default:
                 break;
             }
         }
@@ -224,6 +222,9 @@ void envelopeVolumeAy(int i){
 
                 case DESC_ENV:
                 ay.volume[i] = 0x00;
+                break;
+
+                default:
                 break;
             }
             ay.env = NO_ENV;
