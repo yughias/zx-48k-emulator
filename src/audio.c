@@ -143,7 +143,7 @@ void freeAudio(){
 
 void loadFreqAy(int i){
     ay.pulse_counter[i] = ((AY_REG[i*2 + 1] & 0x0F) << 8) | AY_REG[i*2];
-    if(!ay.pulse_counter)
+    if(!ay.pulse_counter[i])
         ay.pulse_counter[i] = 1;
     ay.pulse_counter[i] <<= 3;    
 }
