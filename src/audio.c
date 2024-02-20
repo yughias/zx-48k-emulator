@@ -38,9 +38,9 @@ float dac_voltage[16] = {
 };
 
 uint16_t getSample();
-void loadFreqAy(int);
-void loadNoiseAy();
-void loadEnvAy();
+uint16_t getFreqCountAy(int);
+uint16_t getNoiseCountAy();
+uint32_t getEnvCountAy();
 void envelopeVolumeAy();
 
 void initAudio(){
@@ -61,57 +61,6 @@ void initAudio(){
     resetAy();
 
     SDL_PauseAudioDevice(audioDev, 0);
-}
-
-void emulateAy(){
-    ay.halfClock ^= 1;
-    if(ay.halfClock)
-        return;
-
-    // 3 channels tone emulation
-    for(int i = 0; i < 3; i++){
-        if(!(AY_REG[AY_AMP_A + i] & 0x10))
-            ay.volume[i] = AY_REG[AY_AMP_A + i] & 0x0F;
-
-        if(AY_REG[AY_AMP_A + i] & 0x1F){
-            if(!ay.pulse_counter[i]){
-                ay.pulse[i] ^= 1;
-                loadFreqAy(i);
-            }
-
-            ay.pulse_counter[i]--;
-        }
-    }
-
-    if(AY_REG[AY_NOISE_PERIOD]){
-        if(!ay.noise_counter){
-            ay.lfsr = (((ay.lfsr & 1) ^ ((ay.lfsr >> 3) & 1)) << 16) | (ay.lfsr >> 1);
-            loadNoiseAy();
-        }
-        ay.noise_counter--;
-    }
-
-    // envelope emulation
-    if(ay.checkEnvShape){
-        if(AY_REG[AY_ENV_SHAPE] & 0b100){
-            ay.env = ASC_ENV;
-            ay.env_step = 0;
-        } else {
-            ay.env = DESC_ENV;
-            ay.env_step = 0x0F;
-        }
-    }
-    
-    if(!ay.env_counter){
-        envelopeVolumeAy();
-        for(int i = 0; i < 3; i++)
-            if(AY_REG[AY_AMP_A + i] & 0x10)
-                ay.volume[i] = ay.env_step;
-        loadEnvAy();
-    }
-    ay.env_counter--;
-
-    ay.checkEnvShape = false;
 }
 
 void sendAudioToDevice(){
@@ -141,25 +90,79 @@ void freeAudio(){
     SDL_CloseAudioDevice(audioDev);
 }
 
-void loadFreqAy(int i){
-    ay.pulse_counter[i] = ((AY_REG[i*2 + 1] & 0x0F) << 8) | AY_REG[i*2];
-    if(!ay.pulse_counter[i])
-        ay.pulse_counter[i] = 1;
-    ay.pulse_counter[i] <<= 3;    
+void emulateAy(){
+    ay.halfClock ^= 1;
+    if(ay.halfClock)
+        return;
+
+    // 3 channels tone emulation
+    for(int i = 0; i < 3; i++){
+        if(!(AY_REG[AY_AMP_A + i] & 0x10))
+            ay.volume[i] = AY_REG[AY_AMP_A + i] & 0x0F;
+
+        if(AY_REG[AY_AMP_A + i] & 0x1F){
+            if(ay.pulse_counter[i] >= getFreqCountAy(i)){
+                ay.pulse[i] ^= 1;
+                ay.pulse_counter[i] = 0;
+            }
+
+            ay.pulse_counter[i]++;
+        }
+    }
+
+    if(AY_REG[AY_NOISE_PERIOD]){
+        if(ay.noise_counter >= getNoiseCountAy()){
+            ay.lfsr = (((ay.lfsr & 1) ^ ((ay.lfsr >> 3) & 1)) << 16) | (ay.lfsr >> 1);
+            ay.noise_counter = 0;
+        }
+        ay.noise_counter++;
+    }
+
+    // envelope emulation
+    if(ay.checkEnvShape){
+        if(AY_REG[AY_ENV_SHAPE] & 0b100){
+            ay.env = ASC_ENV;
+            ay.env_step = 0;
+        } else {
+            ay.env = DESC_ENV;
+            ay.env_step = 0x0F;
+        }
+    }
+    
+    if(ay.env_counter >= getEnvCountAy()){
+        envelopeVolumeAy();
+        for(int i = 0; i < 3; i++)
+            if(AY_REG[AY_AMP_A + i] & 0x10)
+                ay.volume[i] = ay.env_step;
+        ay.env_counter = 0;
+    }
+    ay.env_counter++;
+
+    ay.checkEnvShape = false;
 }
 
-void loadEnvAy(){
-    ay.env_counter = ((AY_REG[AY_ENV_COARSE]) << 8) | AY_REG[AY_ENV_FINE];
-    if(!ay.env_counter)
-        ay.env_counter = 1;
-    ay.env_counter <<= 4;
+uint16_t getFreqCountAy(int i){
+    uint16_t counter = ((AY_REG[i*2 + 1] & 0x0F) << 8) | AY_REG[i*2];
+    if(!counter)
+        counter = 1;
+    counter <<= 3;
+    return counter;    
 }
 
-void loadNoiseAy(){
-    ay.noise_counter = (AY_REG[AY_NOISE_PERIOD] & 0b11111);
-    if(!ay.noise_counter)
-        ay.noise_counter = 1;
-    ay.noise_counter <<= 4;
+uint32_t getEnvCountAy(){
+    uint32_t counter = ((AY_REG[AY_ENV_COARSE]) << 8) | AY_REG[AY_ENV_FINE];
+    if(!counter)
+        counter = 1;
+    counter <<= 4;
+    return counter;
+}
+
+uint16_t getNoiseCountAy(){
+    uint16_t counter = (AY_REG[AY_NOISE_PERIOD] & 0b11111);
+    if(!counter)
+        counter = 1;
+    counter <<= 4;
+    return counter;
 }
 
 void envelopeVolumeAy(){
