@@ -31,7 +31,7 @@ void decodeVersion2Data(uint8_t* buffer, size_t filesize){
     printf("v2 loading!\n");
 
     uint16_t header_block_size = *(uint16_t*)(buffer + 30);  
-    *cpu.PC = *(uint16_t*)(buffer + 32);
+    cpu.PC = *(uint16_t*)(buffer + 32);
 
     uint8_t* ptr = buffer + 32 + header_block_size;
     uint8_t* memory_ptr = MEMORY;
@@ -112,26 +112,26 @@ void loadState(const char* filename){
     fread(buf, size, 1, fptr);
     fclose(fptr);
 
-    *cpu.A = buf[0];
-    *cpu.F = buf[1];
-    *cpu.BC = *(uint16_t*)(buf + 2);
-    *cpu.HL = *(uint16_t*)(buf + 4);
-    *cpu.PC = *(uint16_t*)(buf + 6);
-    *cpu.SP = *(uint16_t*)(buf + 8);
-    *cpu.DE = *(uint16_t*)(buf + 13);
-    *cpu.BC_ = *(uint16_t*)(buf + 15);
-    *cpu.DE_ = *(uint16_t*)(buf + 17);
-    *cpu.HL_ = *(uint16_t*)(buf + 19);
+    cpu.A = buf[0];
+    cpu.F = buf[1];
+    cpu.BC = *(uint16_t*)(buf + 2);
+    cpu.HL = *(uint16_t*)(buf + 4);
+    cpu.PC = *(uint16_t*)(buf + 6);
+    cpu.SP = *(uint16_t*)(buf + 8);
+    cpu.DE = *(uint16_t*)(buf + 13);
+    cpu.BC_ = *(uint16_t*)(buf + 15);
+    cpu.DE_ = *(uint16_t*)(buf + 17);
+    cpu.HL_ = *(uint16_t*)(buf + 19);
 
-    *cpu.AF_ = (buf[21] << 8) | buf[22];
+    cpu.AF_ = (buf[21] << 8) | buf[22];
     
-    *cpu.IYL = buf[23];
-    *cpu.IYH = buf[24];
-    *cpu.IXL = buf[25];
-    *cpu.IXH = buf[26];
+    cpu.IYL = buf[23];
+    cpu.IYH = buf[24];
+    cpu.IXL = buf[25];
+    cpu.IXH = buf[26];
 
-    *cpu.I = buf[10];
-    *cpu.R = (buf[11] & 0x7F) | ((buf[12] & 0x1) << 7);
+    cpu.I = buf[10];
+    cpu.R = (buf[11] & 0x7F) | ((buf[12] & 0x1) << 7);
     ULA = (buf[12] & 0b1110) >> 1;
 
     cpu.INTERRUPT_ENABLED = buf[27];
@@ -139,7 +139,7 @@ void loadState(const char* filename){
     cpu.INTERRUPT_PENDING = false;
     cpu.HALTED = false;
 
-    if(*cpu.PC != 0)
+    if(cpu.PC != 0)
         decodeVersion1Data(buf, size);
     else
         decodeVersion2Data(buf, size);
@@ -150,31 +150,31 @@ void loadState(const char* filename){
 void saveState(const char* filename){
     FILE* fptr = fopen(filename, "wb");
 
-    fwrite(cpu.A,                  1, 1, fptr); // 00
-    fwrite(cpu.F,                  1, 1, fptr); // 01
-    fwrite(cpu.BC,                 2, 1, fptr); // 02
-    fwrite(cpu.HL,                 2, 1, fptr); // 04
-    fwrite(cpu.PC,                 2, 1, fptr); // 06
-    fwrite(cpu.SP,                 2, 1, fptr); // 08
-    fwrite(cpu.I,                  1, 1, fptr); // 10
-    fwrite(cpu.R,                  1, 1, fptr); // 11
+    fwrite(&cpu.A,                  1, 1, fptr); // 00
+    fwrite(&cpu.F,                  1, 1, fptr); // 01
+    fwrite(&cpu.BC,                 2, 1, fptr); // 02
+    fwrite(&cpu.HL,                 2, 1, fptr); // 04
+    fwrite(&cpu.PC,                 2, 1, fptr); // 06
+    fwrite(&cpu.SP,                 2, 1, fptr); // 08
+    fwrite(&cpu.I,                  1, 1, fptr); // 10
+    fwrite(&cpu.R,                  1, 1, fptr); // 11
 
-    uint8_t byte12 = (*cpu.R >> 7) | ((ULA & 0b111) << 1);
+    uint8_t byte12 = (cpu.R >> 7) | ((ULA & 0b111) << 1);
     fwrite(&byte12,                1, 1, fptr); // 12
-    fwrite(cpu.DE,                 2, 1, fptr); // 13
-    fwrite(cpu.BC_,                2, 1, fptr); // 15
-    fwrite(cpu.DE_,                2, 1, fptr); // 17
-    fwrite(cpu.HL_,                2, 1, fptr); // 19
+    fwrite(&cpu.DE,                2, 1, fptr); // 13
+    fwrite(&cpu.BC_,               2, 1, fptr); // 15
+    fwrite(&cpu.DE_,               2, 1, fptr); // 17
+    fwrite(&cpu.HL_,               2, 1, fptr); // 19
 
-    uint8_t a_ = *cpu.AF_ >> 8;
-    uint8_t f_ = *cpu.AF_ & 0xff;
+    uint8_t a_ = cpu.AF_ >> 8;
+    uint8_t f_ = cpu.AF_ & 0xff;
     fwrite(&a_,                    1, 1, fptr); // 21
     fwrite(&f_,                    1, 1, fptr); // 22
 
-    fwrite(cpu.IYL,                1, 1, fptr); // 23
-    fwrite(cpu.IYH,                1, 1, fptr); // 24
-    fwrite(cpu.IXL,                1, 1, fptr); // 25
-    fwrite(cpu.IXH,                1, 1, fptr); // 26
+    fwrite(&cpu.IYL,               1, 1, fptr); // 23
+    fwrite(&cpu.IYH,               1, 1, fptr); // 24
+    fwrite(&cpu.IXL,               1, 1, fptr); // 25
+    fwrite(&cpu.IXH,               1, 1, fptr); // 26
     fwrite(&cpu.INTERRUPT_ENABLED, 1, 1, fptr); // 27
     
     uint8_t iff2 = 0;
@@ -199,6 +199,6 @@ void loadSCR(const char* filename){
     ULA = 0;
 
     // stuck cpu to allow image to be shown
-    *cpu.PC = 0x38;
+    cpu.PC = 0x38;
     MEMORY[0x38] = 0x76;
 }

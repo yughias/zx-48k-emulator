@@ -9,11 +9,11 @@
 
 extern uint8_t* MEMORY;
 
-uint8_t* getReadAddr(uint16_t);
-uint8_t* getWriteAddr(uint16_t);
+uint8_t readMemory(z80_t*, uint16_t);
+void    writeMemory(z80_t*, uint16_t, uint8_t);
 
-uint8_t* getReadIO(uint16_t);
-uint8_t* getWriteIO(uint16_t);
+uint8_t readIO(z80_t*, uint16_t);
+void writeIO(z80_t*, uint16_t, uint8_t);
 
 void initMemory();
 void freeMemory();

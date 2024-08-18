@@ -62,10 +62,10 @@ void fetchBitFromTap(){
 }
 
 void trapTapeRoutine(){
-    uint8_t blockType = *cpu.AF_ >> 8;
-    bool isLoad = *cpu.AF_ & 1;
-    uint16_t address = *cpu.IX;
-    uint16_t length = *cpu.DE;
+    uint8_t blockType = cpu.AF_ >> 8;
+    bool isLoad = cpu.AF_ & 1;
+    uint16_t address = cpu.IX;
+    uint16_t length = cpu.DE;
 
     fread(&blockLength, 2, 1, tape_file_ptr);
     uint8_t tapBlockType;
@@ -81,7 +81,7 @@ void trapTapeRoutine(){
         uint8_t checksum = blockType;
         for(size_t n_bytes = 0; n_bytes < blockLength - 2; n_bytes++){
             fread(&byte, 1, 1, tape_file_ptr);
-            *cpu.writeMemory(address) = byte;
+            cpu.writeMemory(&cpu, address, byte);
             address = (address + 1) % MEMORY_SIZE;
             checksum ^= byte;
         }
@@ -104,8 +104,8 @@ void trapTapeRoutine(){
         showTapeStoppedMsg();
     }
 
-    *cpu.AF |= 1;
-    *cpu.PC = 0x05E2;
+    cpu.AF |= 1;
+    cpu.PC = 0x05E2;
 }
 
 void stopTape(){

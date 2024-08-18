@@ -24,6 +24,7 @@ void initAudio();
 void freeAudio();
 void emulateAy();
 void resetAy();
+void updateEnvelopeAy();
 void sendAudioToDevice();
 
 typedef struct {
@@ -35,7 +36,6 @@ typedef struct {
     uint8_t volume[3];
     enum {NO_ENV, ASC_ENV, DESC_ENV} env;
     bool pulse[3];
-    bool checkEnvShape;
     bool halfClock;
 } ay_t; 
 

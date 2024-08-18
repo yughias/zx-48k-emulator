@@ -117,17 +117,6 @@ void emulateAy(){
         }
         ay.noise_counter++;
     }
-
-    // envelope emulation
-    if(ay.checkEnvShape){
-        if(AY_REG[AY_ENV_SHAPE] & 0b100){
-            ay.env = ASC_ENV;
-            ay.env_step = 0;
-        } else {
-            ay.env = DESC_ENV;
-            ay.env_step = 0x0F;
-        }
-    }
     
     if(ay.env_counter >= getEnvCountAy()){
         envelopeVolumeAy();
@@ -137,8 +126,6 @@ void emulateAy(){
         ay.env_counter = 0;
     }
     ay.env_counter++;
-
-    ay.checkEnvShape = false;
 }
 
 uint16_t getFreqCountAy(int i){
@@ -258,4 +245,14 @@ void resetAy(){
     memset(AY_REG, 0, sizeof(AY_REG));
     memset(&ay, 0, sizeof(ay));
     ay.lfsr = 1;
+}
+
+void updateEnvelopeAy(){
+    if(AY_REG[AY_ENV_SHAPE] & 0b100){
+        ay.env = ASC_ENV;
+        ay.env_step = 0;
+    } else {
+        ay.env = DESC_ENV;
+        ay.env_step = 0x0F;
+    }
 }

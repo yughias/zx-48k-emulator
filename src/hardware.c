@@ -3,14 +3,14 @@
 size_t master_clock_counter;
 
 z80_t cpu = {
-    .readMemory  = getReadAddr,
-    .writeMemory = getWriteAddr,
-    .readIO      = getReadIO,
-    .writeIO     = getWriteIO
+    .readMemory  = readMemory,
+    .writeMemory = writeMemory,
+    .readIO      = readIO,
+    .writeIO     = writeIO
 };
 
 void initAll(){
-    initCPU(&cpu);
+    z80_init(&cpu);
     initMemory();
     initAudio();
 }
@@ -22,7 +22,7 @@ void freeAll(){
 
 void emulateCpu(){
     if(!cpu.cycles)
-        stepCPU(&cpu);
+        z80_step(&cpu);
     cpu.cycles--;
 }
 
@@ -34,7 +34,7 @@ void emulateHardware(){
     updateColorFlash();
 
     for(master_clock_counter = 0; master_clock_counter < CLOCK_PER_FRAME; master_clock_counter++){
-        if(*cpu.PC == TRAP_TAPE_ROUTINE_ADDR && cpu.cycles == 0 && tapeFormat == TAP_INSTANT_LOAD){
+        if(cpu.PC == TRAP_TAPE_ROUTINE_ADDR && cpu.cycles == 0 && tapeFormat == TAP_INSTANT_LOAD){
             trapTapeRoutine();
         }
 

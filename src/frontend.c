@@ -143,7 +143,7 @@ void frontend_selectROM(){
         0
     );
     if(selectedFile){
-        initCPU(&cpu);
+        z80_init(&cpu);
         loadROM(selectedFile);
     }
 }
@@ -279,7 +279,7 @@ void emscripten_resetEmulation(){
     stopTape();
     freeMemory();
     resetAy();
-    initCPU(&cpu);
+    z80_init(&cpu);
     initMemory();
 }
 

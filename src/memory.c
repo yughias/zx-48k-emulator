@@ -4,48 +4,49 @@
 uint8_t* MEMORY;
 uint8_t NOT_MAPPED[2];
 
-uint8_t* getReadAddr(uint16_t addr){
+uint8_t readMemory(z80_t* z80, uint16_t addr){
     emulateMemoryContention(master_clock_counter, addr);
-    return MEMORY + addr;
+    return MEMORY[addr];
 }
 
-uint8_t* getWriteAddr(uint16_t addr){
+void writeMemory(z80_t* z80, uint16_t addr, uint8_t byte){
     emulateMemoryContention(master_clock_counter, addr);
     if(addr < RAM_ADDR){
-        return NOT_MAPPED;
+        return;
     }
-    return MEMORY + addr;
+
+    MEMORY[addr] = byte;
 }
 
-uint8_t* getReadIO(uint16_t ioaddr){
+uint8_t readIO(z80_t* z80, uint16_t ioaddr){
     if(!(ioaddr & 1))
         ulaContention(master_clock_counter);
 
     if(!(ioaddr & 0b11100000))
-        return &KEMPSTON_REG;
+        return KEMPSTON_REG;
 
     calculateULAReg(ioaddr >> 8);
-    return &WORK_REG;
+    return WORK_REG;
 }
 
-uint8_t* getWriteIO(uint16_t ioaddr){
+void writeIO(z80_t* z80, uint16_t ioaddr, uint8_t byte){
     if(!(ioaddr & 1)){
         ulaContention(master_clock_counter);
-        return &ULA;
+        ULA = byte;
+        return;
     }
     
     if((ioaddr >> 14) == 0b11 && !(ioaddr & 0b10)){
-        return &AY_SELECTED_REG;
+        AY_SELECTED_REG = byte;
+        return;
     }
 
     if((ioaddr >> 14) == 0b10 && !(ioaddr & 0b10)){  
+        AY_REG[AY_SELECTED_REG & 0x0F] = byte;
         if(AY_SELECTED_REG == AY_ENV_SHAPE)
-            ay.checkEnvShape = true;
-
-        return &AY_REG[AY_SELECTED_REG & 0x0F];
+            updateEnvelopeAy();
+        return;
     }
-    
-    return NOT_MAPPED;
 }
 
 void initMemory(){
