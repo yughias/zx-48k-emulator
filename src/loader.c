@@ -134,7 +134,7 @@ void loadState(const char* filename){
     cpu.R = (buf[11] & 0x7F) | ((buf[12] & 0x1) << 7);
     ULA = (buf[12] & 0b1110) >> 1;
 
-    cpu.INTERRUPT_ENABLED = buf[27];
+    cpu.IFF1 = buf[27];
     cpu.INTERRUPT_MODE = buf[29] & 0b11;
     cpu.INTERRUPT_PENDING = false;
     cpu.HALTED = false;
@@ -175,7 +175,7 @@ void saveState(const char* filename){
     fwrite(&cpu.IYH,               1, 1, fptr); // 24
     fwrite(&cpu.IXL,               1, 1, fptr); // 25
     fwrite(&cpu.IXH,               1, 1, fptr); // 26
-    fwrite(&cpu.INTERRUPT_ENABLED, 1, 1, fptr); // 27
+    fwrite(&cpu.IFF1, 1, 1, fptr); // 27
     
     uint8_t iff2 = 0;
     fwrite(&iff2,                  1, 1, fptr); // 28
